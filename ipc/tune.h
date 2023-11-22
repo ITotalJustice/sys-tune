@@ -54,38 +54,52 @@ Result tunePrev();
  * @note On FW lower than [6.0.0] this will set the decode volume.
  * @param[out] out volume value (linear factor).
  */
-Result tuneGetVolume(float *out);
+Result tuneGetBass(double *out);
 
 /**
  * @brief Set the playback volume.
  * @note On FW lower than [6.0.0] this will return the decode volume.
  * @param[in] volume volume value (linear factor).
  */
-Result tuneSetVolume(float volume);
+Result tuneSetBass(double bass);
+
+/**
+ * @brief Get the current playback volume.
+ * @note On FW lower than [6.0.0] this will set the decode volume.
+ * @param[out] out volume value (linear factor).
+ */
+Result tuneGetVolume(double *out);
+
+/**
+ * @brief Set the playback volume.
+ * @note On FW lower than [6.0.0] this will return the decode volume.
+ * @param[in] volume volume value (linear factor).
+ */
+Result tuneSetVolume(double volume);
 
 /**
  * @brief Get the volume of the current title
  * @param[out] out volume value (linear factor).
  */
-Result tuneGetTitleVolume(float *out);
+Result tuneGetTitleVolume(double *out);
 
 /**
  * @brief Set the volume of the current title
  * @param[in] volume volume value (linear factor).
  */
-Result tuneSetTitleVolume(float volume);
+Result tuneSetTitleVolume(double volume);
 
 /**
  * @brief Get the default volume of all titles
  * @param[out] out volume value (linear factor).
  */
-Result tuneGetDefaultTitleVolume(float *out);
+Result tuneGetDefaultTitleVolume(double *out);
 
 /**
  * @brief Set the default volume of all titles
  * @param[in] volume volume value (linear factor).
  */
-Result tuneSetDefaultTitleVolume(float volume);
+Result tuneSetDefaultTitleVolume(double volume);
 
 /**
  * @brief Get the current loop status.

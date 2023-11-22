@@ -32,4 +32,10 @@ dist: all
 	cd dist; zip -r sys-tune-$(VERSION)-$(GITHASH).zip ./**/; cd ../;
 	-hactool -t nso sys-tune/sys-tune.nso
 
+wah:
+	$(MAKE) overlay -j66
+	$(MAKE) sys-tune/nxExt -j66
+	$(MAKE) sys-tune -j66
+	$(MAKE) all -j66
+	
 .PHONY: all overlay module

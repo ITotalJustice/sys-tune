@@ -26,12 +26,14 @@ namespace tune::impl {
     void Next();
     void Prev();
 
-    float GetVolume();
-    void SetVolume(float volume);
-    float GetTitleVolume();
-    void SetTitleVolume(float volume);
-    float GetDefaultTitleVolume();
-    void SetDefaultTitleVolume(float volume);
+    double GetBass();
+    void SetBass(double bass);
+    double GetVolume();
+    void SetVolume(double volume);
+    double GetTitleVolume();
+    void SetTitleVolume(double volume);
+    double GetDefaultTitleVolume();
+    void SetDefaultTitleVolume(double volume);
 
     void TitlePlay();
     void TitlePause();

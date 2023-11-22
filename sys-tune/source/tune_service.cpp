@@ -51,23 +51,29 @@ namespace tune {
                     impl::Prev();
                     return 0;
 
+                case TuneIpcCmd_GetBass:
+                    GET_SINGLE(double, impl::GetBass);
+
+                case TuneIpcCmd_SetBass:
+                    SET_SINGLE(double, impl::SetBass);
+
                 case TuneIpcCmd_GetVolume:
-                    GET_SINGLE(float, impl::GetVolume);
+                    GET_SINGLE(double, impl::GetVolume);
 
                 case TuneIpcCmd_SetVolume:
-                    SET_SINGLE(float, impl::SetVolume);
+                    SET_SINGLE(double, impl::SetVolume);
 
                 case TuneIpcCmd_GetTitleVolume:
-                    GET_SINGLE(float, impl::GetTitleVolume);
+                    GET_SINGLE(double, impl::GetTitleVolume);
 
                 case TuneIpcCmd_SetTitleVolume:
-                    SET_SINGLE(float, impl::SetTitleVolume);
+                    SET_SINGLE(double, impl::SetTitleVolume);
 
                 case TuneIpcCmd_GetDefaultTitleVolume:
-                    GET_SINGLE(float, impl::GetDefaultTitleVolume);
+                    GET_SINGLE(double, impl::GetDefaultTitleVolume);
 
                 case TuneIpcCmd_SetDefaultTitleVolume:
-                    SET_SINGLE(float, impl::SetDefaultTitleVolume);
+                    SET_SINGLE(double, impl::SetDefaultTitleVolume);
 
                 case TuneIpcCmd_GetRepeatMode:
                     GET_SINGLE(RepeatMode, impl::GetRepeatMode);
@@ -138,7 +144,7 @@ namespace tune {
 
                 case TuneIpcCmd_GetApiVersion:
                     *out_dataSize    = sizeof(u32);
-                    *(u32 *)out_data = TUNE_API_VERSION;
+                    *(u32 *)out_data = 660660066066;
                     return 0;
             }
             return tune::Generic;

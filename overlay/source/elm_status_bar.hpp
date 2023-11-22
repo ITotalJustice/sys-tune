@@ -3,7 +3,7 @@
 #include "../../ipc/tune.h"
 #include "symbol.hpp"
 
-#include <tesla.hpp>
+#include <../tesla.hpp>
 
 class StatusBar final : public tsl::elm::Element {
   private:
@@ -12,7 +12,7 @@ class StatusBar final : public tsl::elm::Element {
     TuneShuffleMode m_shuffle;
     TuneCurrentStats m_stats;
 
-    float m_percentage;
+    double m_percentage;
 
     std::string_view m_current_track;
     std::string m_scroll_text;

@@ -16,7 +16,7 @@ struct NxFile {
 #define INI_FILEPOS s64
 #define INI_OPENREWRITE
 #define INI_REMOVE
-#define INI_REAL float
+#define INI_REAL double
 
 bool ini_openread(const char* filename, struct NxFile* nxfile);
 bool ini_openwrite(const char* filename, struct NxFile* nxfile);

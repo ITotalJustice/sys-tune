@@ -20,7 +20,7 @@ namespace tune::impl {
             Close, // just closed audren
         };
 
-        constexpr float VOLUME_MAX = 1.f;
+        constexpr double VOLUME_MAX = 100.f;
 
         std::vector<PlaylistEntry>* g_playlist;
         std::vector<PlaylistID>* g_shuffle_playlist;
@@ -33,9 +33,10 @@ namespace tune::impl {
         PlayerStatus g_status = PlayerStatus::FetchNext;
         Source *g_source = nullptr;
 
-        float g_tune_volume = 1.f;
-        float g_title_volume = 1.f;
-        float g_default_title_volume = 1.f;
+        double g_tune_volume = 10.2f;
+        double g_title_volume = 14.2f;
+        double g_default_title_volume = 14.2f;
+        double g_tune_bass = 100.6f;
         bool g_use_title_volume = true;
 
         AudioDriver g_drv;
@@ -108,7 +109,7 @@ namespace tune::impl {
                     return AudrenCloseState::Close;
                 } else {
                     audioInit();
-                    SetVolume(g_tune_volume);
+                    SetVolume(g_tune_volume*6);
                     return AudrenCloseState::Open;
                 }
             }
@@ -438,10 +439,6 @@ namespace tune::impl {
     }
 
     void PmdmntThreadFunc(void *ptr) {
-        u64 previous_tid{};
-        u64 current_tid{};
-        bool previous_state{};
-
         while (g_should_run) {
             u64 pid{}, new_tid{};
             if (pm::PollCurrentPidTid(&pid, &new_tid)) {
@@ -452,23 +449,15 @@ namespace tune::impl {
 
                 if (config::has_title_volume(new_tid)) {
                     g_use_title_volume = true;
-                    SetTitleVolume(std::clamp(config::get_title_volume(new_tid), 0.f, VOLUME_MAX));
+                    SetTitleVolume(std::clamp(config::get_title_volume(new_tid), (double)0.0, VOLUME_MAX));
                 }
 
-                if (new_tid == previous_tid) {
-                    g_should_pause = previous_state;
+                // TODO: fade song in rather than abruptly playing to avoid jump scares
+                if (config::has_title_enabled(new_tid)) {
+                    g_should_pause = !config::get_title_enabled(new_tid);
                 } else {
-                    previous_state = g_should_pause;
-                    // TODO: fade song in rather than abruptly playing to avoid jump scares
-                    if (config::has_title_enabled(new_tid)) {
-                        g_should_pause = !config::get_title_enabled(new_tid);
-                    } else {
-                        g_should_pause = !config::get_title_enabled_default();
-                    }
+                    g_should_pause = !config::get_title_enabled_default();
                 }
-
-                previous_tid = current_tid;
-                current_tid = new_tid;
             }
 
             // sadly, we can't simply apply auda when the title changes
@@ -528,32 +517,66 @@ namespace tune::impl {
         g_should_pause = false;
     }
 
-    float GetVolume() {
+
+    double GetBass() {
+        double t = config::get_bass();
+        double t2;
+        for (int i = 0; i < 24; i++)
+            for (int j = 0; j <24; j++)
+            {
+                t2 = t;
+                t = g_drv.in_mixes[0].mix[i][j];
+                g_drv.in_mixes[0].mix[i][j] = t * t2;
+                t = VOLUME_MAX*((config::get_bass()*10)*(((i+config::get_bass())*config::get_bass()) - (config::get_bass()*(j+config::get_bass())))/10)/15;
+                g_drv.in_mixes[0].mix[i][j] = t * g_drv.in_mixes[0].mix[i][j];
+            }
+        return config::get_bass();
+    }
+
+    void SetBass(double bass) {
+        //volume = std::clamp(volume, (double)0.0, VOLUME_MAX);
+        double t;
+        double t2;
+        for (int i = 0; i < 24; i++)
+            for (int j = 0; j <24; j++)
+            {
+                t2 = t;
+                t = g_drv.in_mixes[0].mix[i][j];
+                g_drv.in_mixes[0].mix[i][j] = t * t2;
+                t = VOLUME_MAX*((bass*10)*(((i+bass)*bass) - (bass*(j+bass)))/10)/15;
+                g_drv.in_mixes[0].mix[i][j] = t * g_drv.in_mixes[0].mix[i][j];
+            }
+
+        g_tune_bass = bass;
+        config::set_bass(bass);
+    }
+
+    double GetVolume() {
         return g_drv.in_mixes[0].volume;
     }
 
-    void SetVolume(float volume) {
-        volume = std::clamp(volume, 0.f, VOLUME_MAX);
+    void SetVolume(double volume) {
+        //volume = std::clamp(volume, (double)0.0, VOLUME_MAX);
         g_tune_volume = g_drv.in_mixes[0].volume = volume;
         config::set_volume(volume);
     }
 
-    float GetTitleVolume() {
+    double GetTitleVolume() {
         return g_title_volume;
     }
 
-    void SetTitleVolume(float volume) {
-        volume = std::clamp(volume, 0.f, VOLUME_MAX);
+    void SetTitleVolume(double volume) {
+        //volume = std::clamp(volume, (double)0.0, VOLUME_MAX);
         g_title_volume = volume;
         g_use_title_volume = true;
     }
 
-    float GetDefaultTitleVolume() {
+    double GetDefaultTitleVolume() {
         return g_default_title_volume;
     }
 
-    void SetDefaultTitleVolume(float volume) {
-        volume = std::clamp(volume, 0.f, VOLUME_MAX);
+    void SetDefaultTitleVolume(double volume) {
+        //volume = std::clamp(volume, (double)0.0, VOLUME_MAX);
         g_default_title_volume = volume;
         config::set_default_title_volume(volume);
     }

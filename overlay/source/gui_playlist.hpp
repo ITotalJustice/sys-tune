@@ -1,6 +1,6 @@
 #pragma once
 
-#include <tesla.hpp>
+#include <../tesla.hpp>
 
 class PlaylistGui final : public tsl::Gui {
   private:

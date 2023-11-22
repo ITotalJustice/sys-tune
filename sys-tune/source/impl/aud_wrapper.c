@@ -38,14 +38,14 @@ Result audWrapperRequestResume(u64 pid, u64 delay) {
         return audaRequestResumeAudio(pid, delay);
 }
 
-Result audWrapperGetProcessMasterVolume(u64 pid, float* volume_out) {
+Result audWrapperGetProcessMasterVolume(u64 pid, double* volume_out) {
     if (hosversionBefore(11,0,0))
         return audoutaGetProcessMasterVolume(pid, volume_out);
     else
         return audaGetAudioOutputProcessMasterVolume(pid, volume_out);
 }
 
-Result audWrapperSetProcessMasterVolume(u64 pid, u64 delay, float volume) {
+Result audWrapperSetProcessMasterVolume(u64 pid, u64 delay, double volume) {
     if (hosversionBefore(11,0,0))
         return audoutaSetProcessMasterVolume(pid, delay, volume);
     else {
@@ -57,7 +57,7 @@ Result audWrapperSetProcessMasterVolume(u64 pid, u64 delay, float volume) {
     }
 }
 
-Result audWrapperGetProcessRecordVolume(u64 pid, float* volume_out) {
+Result audWrapperGetProcessRecordVolume(u64 pid, double* volume_out) {
     if (hosversionBefore(4,0,0))
         return MAKERESULT(Module_Libnx, LibnxError_IncompatSysVer);
 
@@ -67,7 +67,7 @@ Result audWrapperGetProcessRecordVolume(u64 pid, float* volume_out) {
         return audaGetAudioOutputProcessRecordVolume(pid, volume_out);
 }
 
-Result audWrapperSetProcessRecordVolume(u64 pid, u64 delay, float volume) {
+Result audWrapperSetProcessRecordVolume(u64 pid, u64 delay, double volume) {
     if (hosversionBefore(4,0,0))
         return MAKERESULT(Module_Libnx, LibnxError_IncompatSysVer);
 

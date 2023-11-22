@@ -15,10 +15,10 @@ void audWrapperExit(void);
 
 Result audWrapperRequestSuspend(u64 pid, u64 delay);
 Result audWrapperRequestResume(u64 pid, u64 delay);
-Result audWrapperGetProcessMasterVolume(u64 pid, float* volume_out);
-Result audWrapperSetProcessMasterVolume(u64 pid, u64 delay, float volume);
-Result audWrapperGetProcessRecordVolume(u64 pid, float* volume_out);
-Result audWrapperSetProcessRecordVolume(u64 pid, u64 delay, float volume);
+Result audWrapperGetProcessMasterVolume(u64 pid, double* volume_out);
+Result audWrapperSetProcessMasterVolume(u64 pid, u64 delay, double volume);
+Result audWrapperGetProcessRecordVolume(u64 pid, double* volume_out);
+Result audWrapperSetProcessRecordVolume(u64 pid, u64 delay, double volume);
 
 #ifdef __cplusplus
 }

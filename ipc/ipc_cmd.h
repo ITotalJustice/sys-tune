@@ -13,6 +13,8 @@ enum TuneIpcCmd {
     TuneIpcCmd_SetTitleVolume = 13,
     TuneIpcCmd_GetDefaultTitleVolume = 14,
     TuneIpcCmd_SetDefaultTitleVolume = 15,
+    TuneIpcCmd_GetBass = 16,
+    TuneIpcCmd_SetBass = 17,
 
     TuneIpcCmd_GetRepeatMode = 20,
     TuneIpcCmd_SetRepeatMode = 21,

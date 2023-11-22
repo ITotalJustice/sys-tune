@@ -36,10 +36,10 @@ Result audoutaRequestResumeOld(u64 pid, u64 delay, Handle* handle_out); // [1.0.
 // All tested (and works)
 Result audoutaRequestSuspend(u64 pid, u64 delay); // [4.0.0]+
 Result audoutaRequestResume(u64 pid, u64 delay); // [4.0.0]+
-Result audoutaGetProcessMasterVolume(u64 pid, float* volume_out);
-Result audoutaSetProcessMasterVolume(u64 pid, u64 delay, float volume);
-Result audoutaGetProcessRecordVolume(u64 pid, float* volume_out);
-Result audoutaSetProcessRecordVolume(u64 pid, u64 delay, float volume);
+Result audoutaGetProcessMasterVolume(u64 pid, double* volume_out);
+Result audoutaSetProcessMasterVolume(u64 pid, u64 delay, double volume);
+Result audoutaGetProcessRecordVolume(u64 pid, double* volume_out);
+Result audoutaSetProcessRecordVolume(u64 pid, u64 delay, double volume);
 
 // Untested
 Result audoutdRequestSuspendForDebug(u64 pid, u64 delay);

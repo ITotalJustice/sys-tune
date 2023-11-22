@@ -39,13 +39,13 @@ Result audaRequestResumeAudio(u64 pid, u64 delay) {
     return serviceDispatchIn(&g_audaSrv, 3, in);
 }
 
-Result audaGetAudioOutputProcessMasterVolume(u64 pid, float* volume_out) {
+Result audaGetAudioOutputProcessMasterVolume(u64 pid, double* volume_out) {
     return serviceDispatchInOut(&g_audaSrv, 4, pid, *volume_out);
 }
 
-Result audaSetAudioOutputProcessMasterVolume(u64 pid, u64 delay, float volume) {
+Result audaSetAudioOutputProcessMasterVolume(u64 pid, u64 delay, double volume) {
     const struct {
-        float volume;
+        double volume;
         u64 pid;
         u64 timespan;
     } in = { volume, pid, delay };
@@ -53,13 +53,13 @@ Result audaSetAudioOutputProcessMasterVolume(u64 pid, u64 delay, float volume) {
     return serviceDispatchIn(&g_audaSrv, 5, in);
 }
 
-Result audaGetAudioInputProcessMasterVolume(u64 pid, float* volume_out) {
+Result audaGetAudioInputProcessMasterVolume(u64 pid, double* volume_out) {
     return serviceDispatchInOut(&g_audaSrv, 6, pid, *volume_out);
 }
 
-Result audaSetAudioInputProcessMasterVolume(u64 pid, u64 delay, float volume) {
+Result audaSetAudioInputProcessMasterVolume(u64 pid, u64 delay, double volume) {
     const struct {
-        float volume;
+        double volume;
         u64 pid;
         u64 timespan;
     } in = { volume, pid, delay };
@@ -67,13 +67,13 @@ Result audaSetAudioInputProcessMasterVolume(u64 pid, u64 delay, float volume) {
     return serviceDispatchIn(&g_audaSrv, 7, in);
 }
 
-Result audaGetAudioOutputProcessRecordVolume(u64 pid, float* volume_out) {
+Result audaGetAudioOutputProcessRecordVolume(u64 pid, double* volume_out) {
     return serviceDispatchInOut(&g_audaSrv, 8, pid, *volume_out);
 }
 
-Result audaSetAudioOutputProcessRecordVolume(u64 pid, u64 delay, float volume) {
+Result audaSetAudioOutputProcessRecordVolume(u64 pid, u64 delay, double volume) {
     const struct {
-        float volume;
+        double volume;
         u64 pid;
         u64 timespan;
     } in = { volume, pid, delay };

@@ -69,13 +69,13 @@ Result audoutaRequestResume(u64 pid, u64 delay) {
     return serviceDispatchIn(&g_audoutaSrv, 1, in);
 }
 
-Result audoutaGetProcessMasterVolume(u64 pid, float* volume_out) {
+Result audoutaGetProcessMasterVolume(u64 pid, double* volume_out) {
     return serviceDispatchInOut(&g_audoutaSrv, 2, pid, *volume_out);
 }
 
-Result audoutaSetProcessMasterVolume(u64 pid, u64 delay, float volume) {
+Result audoutaSetProcessMasterVolume(u64 pid, u64 delay, double volume) {
     const struct {
-        float volume;
+        double volume;
         u64 pid;
         u64 timespan;
     } in = { volume, pid, 0 };
@@ -83,19 +83,19 @@ Result audoutaSetProcessMasterVolume(u64 pid, u64 delay, float volume) {
     return serviceDispatchIn(&g_audoutaSrv, 3, in);
 }
 
-Result audoutaGetProcessRecordVolume(u64 pid, float* volume_out) {
+Result audoutaGetProcessRecordVolume(u64 pid, double* volume_out) {
     if (hosversionBefore(4,0,0))
         return MAKERESULT(Module_Libnx, LibnxError_IncompatSysVer);
 
     return serviceDispatchInOut(&g_audoutaSrv, 4, pid, *volume_out);
 }
 
-Result audoutaSetProcessRecordVolume(u64 pid, u64 delay, float volume) {
+Result audoutaSetProcessRecordVolume(u64 pid, u64 delay, double volume) {
     if (hosversionBefore(4,0,0))
         return MAKERESULT(Module_Libnx, LibnxError_IncompatSysVer);
 
     const struct {
-        float volume;
+        double volume;
         u64 pid;
         u64 timespan;
     } in = { volume, pid, delay };

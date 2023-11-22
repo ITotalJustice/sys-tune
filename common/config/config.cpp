@@ -49,11 +49,20 @@ void set_repeat(int value) {
     ini_putl("config", "repeat", value, CONFIG_PATH);
 }
 
-auto get_volume() -> float {
+auto get_bass() -> double {
+    return ini_getf("config", "bass", 1.f, CONFIG_PATH);
+}
+
+void set_bass(double value) {
+    create_config_dir();
+    ini_putf("config", "bass", value, CONFIG_PATH);
+}
+
+auto get_volume() -> double {
     return ini_getf("config", "volume", 1.f, CONFIG_PATH);
 }
 
-void set_volume(float value) {
+void set_volume(double value) {
     create_config_dir();
     ini_putf("config", "volume", value, CONFIG_PATH);
 }
@@ -84,20 +93,20 @@ auto has_title_volume(u64 tid) -> bool {
     return ini_haskey("volume", get_tid_str(tid), CONFIG_PATH);
 }
 
-auto get_title_volume(u64 tid) -> float {
+auto get_title_volume(u64 tid) -> double {
     return ini_getf("volume", get_tid_str(tid), 1.f, CONFIG_PATH);
 }
 
-void set_title_volume(u64 tid, float value) {
+void set_title_volume(u64 tid, double value) {
     create_config_dir();
     ini_putf("volume", get_tid_str(tid), value, CONFIG_PATH);
 }
 
-auto get_default_title_volume() -> float {
+auto get_default_title_volume() -> double {
     return ini_getf("config", "global_volume", 1.f, CONFIG_PATH);
 }
 
-void set_default_title_volume(float value) {
+void set_default_title_volume(double value) {
     create_config_dir();
     ini_putf("config", "global_volume", value, CONFIG_PATH);
 }

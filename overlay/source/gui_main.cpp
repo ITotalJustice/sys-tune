@@ -8,7 +8,7 @@
 #include "config/config.hpp"
 
 namespace {
-    constexpr const size_t num_steps = 20;
+    constexpr const size_t num_steps = 66;
 }
 
 MainGui::MainGui() {
@@ -51,19 +51,21 @@ tsl::elm::Element *MainGui::createUI() {
     list->addItem(new tsl::elm::CategoryHeader("Volume Control"));
 
     /* Get initial volume. */
-    float tune_volume = 1.f;
-    float title_volume = 1.f;
-    float default_title_volume = 1.f;
+    double tune_volume = 1.f;
+    double title_volume = 1.f;
+    double default_title_volume = 1.f;
+    double tune_bass = 1.f;
 
     tuneGetVolume(&tune_volume);
     tuneGetTitleVolume(&title_volume);
     tuneGetDefaultTitleVolume(&default_title_volume);
+    tuneGetBass(&tune_bass);
 
     auto tune_volume_slider = new ElmVolume("\uE13C", "Tune Volume", num_steps);
     tune_volume_slider->setProgress(tune_volume * num_steps);
     tune_volume_slider->setValueChangedListener([](u8 value){
-        const float volume = float(value) / float(num_steps);
-        tuneSetVolume(volume);
+        const double volume = double(value) / double(num_steps);
+        tuneSetVolume(volume*6);
     });
     list->addItem(tune_volume_slider);
 
@@ -72,9 +74,9 @@ tsl::elm::Element *MainGui::createUI() {
         auto title_volume_slider = new ElmVolume("\uE13C", "Game Volume", num_steps);
         title_volume_slider->setProgress(title_volume * num_steps);
         title_volume_slider->setValueChangedListener([tid](u8 value){
-            const float volume = float(value) / float(num_steps);
-            tuneSetTitleVolume(volume);
-            config::set_title_volume(tid, volume);
+            const double volume = double(value) / double(num_steps);
+            tuneSetTitleVolume(volume*6);
+            config::set_title_volume(tid, volume*6);
         });
         list->addItem(title_volume_slider);
     }
@@ -82,10 +84,18 @@ tsl::elm::Element *MainGui::createUI() {
     auto default_title_volume_slider = new ElmVolume("\uE13C", "Game Volume (default)", num_steps);
     default_title_volume_slider->setProgress(default_title_volume * num_steps);
     default_title_volume_slider->setValueChangedListener([](u8 value){
-        const float volume = float(value) / float(num_steps);
-        tuneSetDefaultTitleVolume(volume);
+        const double volume = double(value) / double(num_steps);
+        tuneSetDefaultTitleVolume(volume*6);
     });
     list->addItem(default_title_volume_slider);
+
+    auto tune_bass_slider = new ElmVolume("\uE13C", "Bass Boost", num_steps);
+    tune_bass_slider->setProgress(tune_bass * num_steps);
+    tune_bass_slider->setValueChangedListener([](u8 value){
+        const double bass = double(value) / double(num_steps);
+        tuneSetBass(bass / 2);
+    });
+    list->addItem(tune_bass_slider);
 
     list->addItem(new tsl::elm::CategoryHeader("Play / Pause"));
 

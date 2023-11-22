@@ -33,14 +33,14 @@ Service* auddGetServiceSession(void);
 // All tested (and works)
 Result audaRequestSuspendAudio(u64 pid, u64 delay);
 Result audaRequestResumeAudio(u64 pid, u64 delay);
-Result audaGetAudioOutputProcessMasterVolume(u64 pid, float* volume_out);
+Result audaGetAudioOutputProcessMasterVolume(u64 pid, double* volume_out);
 // Doesn't seem to apply... Maybe Input is overriding this?
-Result audaSetAudioOutputProcessMasterVolume(u64 pid, u64 delay, float volume);
-Result audaGetAudioInputProcessMasterVolume(u64 pid, float* volume_out);
+Result audaSetAudioOutputProcessMasterVolume(u64 pid, u64 delay, double volume);
+Result audaGetAudioInputProcessMasterVolume(u64 pid, double* volume_out);
 // Sets both Output and Input volume
-Result audaSetAudioInputProcessMasterVolume(u64 pid, u64 delay, float volume);
-Result audaGetAudioOutputProcessRecordVolume(u64 pid, float* volume_out);
-Result audaSetAudioOutputProcessRecordVolume(u64 pid, u64 delay, float volume);
+Result audaSetAudioInputProcessMasterVolume(u64 pid, u64 delay, double volume);
+Result audaGetAudioOutputProcessRecordVolume(u64 pid, double* volume_out);
+Result audaSetAudioOutputProcessRecordVolume(u64 pid, u64 delay, double volume);
 
 // All tested (and works)
 Result auddRequestSuspendAudioForDebug(u64 pid, u64 delay);
