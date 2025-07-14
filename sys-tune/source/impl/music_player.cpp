@@ -482,7 +482,8 @@ namespace tune::impl {
                 // audWrapperSetProcessRecordVolume(pid, 0, v);
             }
 
-            svcSleepThread(10'000'000);
+            // svcSleepThread(10'000'000);
+            svcSleepThread(1e+8);
         }
     }
 

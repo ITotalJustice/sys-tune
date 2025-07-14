@@ -4,14 +4,21 @@ namespace {
 
 constexpr u64 QLAUNCH_TITLE_ID{0x0100000000001000ULL};
 u64 CURRENT_TITLE_ID{};
+PdmPlayStatistics CURRENT_PLAY_STATS{};
+PdmAppletEvent CURRENT_PLAY_EVENT{};
+u64 LOST_FOCUS_EXPIRE_NS{};
 
 }
 
 namespace pm {
 
 auto Initialize() -> Result {
-    auto rc = pmdmntInitialize();
-    if (R_FAILED(rc)) {
+    Result rc;
+    if (R_FAILED(rc = pdmqryInitialize())) {
+        return rc;
+    }
+
+    if (R_FAILED(rc = pmdmntInitialize())) {
         return rc;
     }
 
@@ -21,6 +28,7 @@ auto Initialize() -> Result {
 void Exit() {
     pminfoExit();
     pmdmntExit();
+    pdmqryExit();
 }
 
 // SOURCE: https://github.com/retronx-team/sys-clk/blob/570f1e5fe10b253eff0c8fda1bb893bb620af052/sysmodule/src/process_management.cpp#L37
@@ -29,6 +37,31 @@ void getCurrentPidTid(u64* pid_out, u64* tid_out) {
     if (R_SUCCEEDED(rc = pmdmntGetApplicationProcessId(pid_out))) {
         if (0x20f == pminfoGetProgramId(tid_out, *pid_out)){
             *tid_out = QLAUNCH_TITLE_ID;
+        } else {
+            // check if we have focus, if not, report as qlaunch.
+            PdmPlayStatistics stats;
+            if (R_SUCCEEDED(pdmqryQueryPlayStatisticsByApplicationId(*tid_out, true, &stats))) {
+                if (stats.program_id != CURRENT_PLAY_STATS.program_id || stats.last_entry_index != CURRENT_PLAY_STATS.last_entry_index) {
+                    CURRENT_PLAY_STATS = stats;
+
+                    // PdmAppletEvent event;
+                    s32 total;
+                    if (R_SUCCEEDED(pdmqryQueryAppletEvent(stats.last_entry_index, true, &CURRENT_PLAY_EVENT, 1, &total)) && total) {
+                        if (CURRENT_PLAY_EVENT.event_type != PdmAppletEventType_InFocus) {
+                            // delay before reporting as qlaunch, workaround nro launching triggering events.
+                            // todo: make configurable in config.
+                            LOST_FOCUS_EXPIRE_NS = armTicksToNs(armGetSystemTick()) + 5e+8;
+                        }
+                    }
+                } else if (CURRENT_PLAY_EVENT.event_type != PdmAppletEventType_InFocus) {
+                    const auto now = armTicksToNs(armGetSystemTick());
+                    if (now > LOST_FOCUS_EXPIRE_NS) {
+                        *tid_out = QLAUNCH_TITLE_ID;
+                    }
+                }
+
+
+            }
         }
     } else if (rc == 0x20f) {
         *tid_out = QLAUNCH_TITLE_ID;
