@@ -262,7 +262,20 @@ namespace tune::impl {
             // for the first buffer, use very small buffer sizes to reduce latency between songs.
             int first = 1;
 
+            // keep track of current pause state.
+            bool should_pause = g_should_pause;
+
             while (g_should_run && g_status == PlayerStatus::Playing) {
+                // stop audout of pause changes so that we don't drop samples.
+                if (should_pause != g_should_pause) {
+                    should_pause = g_should_pause;
+                    if (should_pause) {
+                        audoutStopAudioOut();
+                    } else {
+                        audoutStartAudioOut();
+                    }
+                }
+
                 if (g_should_pause) {
                     svcSleepThread(17'000'000);
                     continue;
@@ -482,7 +495,6 @@ namespace tune::impl {
                 // audWrapperSetProcessRecordVolume(pid, 0, v);
             }
 
-            // svcSleepThread(10'000'000);
             svcSleepThread(1e+8);
         }
     }

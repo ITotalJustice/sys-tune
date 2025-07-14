@@ -44,7 +44,6 @@ void getCurrentPidTid(u64* pid_out, u64* tid_out) {
                 if (stats.program_id != CURRENT_PLAY_STATS.program_id || stats.last_entry_index != CURRENT_PLAY_STATS.last_entry_index) {
                     CURRENT_PLAY_STATS = stats;
 
-                    // PdmAppletEvent event;
                     s32 total;
                     if (R_SUCCEEDED(pdmqryQueryAppletEvent(stats.last_entry_index, true, &CURRENT_PLAY_EVENT, 1, &total)) && total) {
                         if (CURRENT_PLAY_EVENT.event_type != PdmAppletEventType_InFocus) {
@@ -55,12 +54,10 @@ void getCurrentPidTid(u64* pid_out, u64* tid_out) {
                     }
                 } else if (CURRENT_PLAY_EVENT.event_type != PdmAppletEventType_InFocus) {
                     const auto now = armTicksToNs(armGetSystemTick());
-                    if (now > LOST_FOCUS_EXPIRE_NS) {
+                    if (now >= LOST_FOCUS_EXPIRE_NS) {
                         *tid_out = QLAUNCH_TITLE_ID;
                     }
                 }
-
-
             }
         }
     } else if (rc == 0x20f) {
