@@ -7,6 +7,41 @@
 
 namespace {
 
+    class TitleList final : public tsl::elm::List {
+        private:
+            s64 m_timestamp;
+            u32 m_nacp_load_count;
+
+        public:
+            using List::List;
+
+            void draw(tsl::gfx::Renderer *renderer) override {
+                m_timestamp = armTicksToNs(armGetSystemTick()) / 1000000;
+                m_nacp_load_count = 0;
+
+                List::draw(renderer);
+            }
+
+            bool HasTimeRemaining() {
+                bool result = false;
+                const s64 now = armTicksToNs(armGetSystemTick()) / 1000000;
+                const s64 timeout_ms = 10;
+
+                // always load at least 1 entry per frame.
+                if (m_nacp_load_count < 1) {
+                    result = true;
+                } else if ((now - m_timestamp) < timeout_ms) {
+                    result = true;
+                }
+
+                if (result) {
+                    m_nacp_load_count++;
+                }
+
+                return result;
+            }
+    };
+
     class TitleListItem final : public tsl::elm::ListItem {
       private:
         const u64 m_id;
@@ -54,13 +89,17 @@ namespace {
             });
         }
 
-        explicit TitleListItem(u64 id) : TitleListItem{"[Unknown]", id, false} {
+        explicit TitleListItem(u64 id) : TitleListItem{"[Loading...]", id, false} {
 
         }
 
         void draw(tsl::gfx::Renderer *renderer) override {
+            // only fetch nacp if we have enough time left on this frame.
             if (!LoadedNacp()) {
-                FetchNacp();
+                auto list = dynamic_cast<TitleList*>(getParent());
+                if (list && list->HasTimeRemaining()) {
+                    FetchNacp();
+                }
             }
 
             if (!m_has_overriden_loaded) {
@@ -85,7 +124,7 @@ namespace {
 }
 
 TitlelistGui::TitlelistGui(bool applet_list) {
-    m_list = new tsl::elm::List();
+    m_list = new TitleList();
 
     m_list->setClickListener([this](u64 keys) {
         auto item = dynamic_cast<TitleListItem*>(getFocusedElement());
