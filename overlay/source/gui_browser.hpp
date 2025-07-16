@@ -17,7 +17,7 @@ class BrowserGui final : public tsl::Gui {
     const FilePickerCallback m_picker_callback;
 
   public:
-    BrowserGui(const FilePickerCallback& cb = nullptr);
+    BrowserGui(FilePickerCallback&& cb = nullptr);
     ~BrowserGui();
 
     tsl::elm::Element *createUI() override;

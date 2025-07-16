@@ -42,8 +42,8 @@ namespace {
 
 }
 
-BrowserGui::BrowserGui(const FilePickerCallback& cb)
-    : m_fs(), has_music(), cwd("/"), m_picker_callback{cb} {
+BrowserGui::BrowserGui(FilePickerCallback&& cb)
+    : m_fs(), has_music(), cwd("/"), m_picker_callback{std::forward<decltype(cb)>(cb)} {
     this->m_list = new tsl::elm::List();
 
     /* Open sd card filesystem. */

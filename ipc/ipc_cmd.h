@@ -48,5 +48,5 @@ enum TuneIpcCmd {
     TuneIpcCmd_GetAutoPlayPath = 80,
     TuneIpcCmd_SetAutoPlayPath = 81,
 
-    TuneIpcCmd_GetApiVersion = 5000,
+    TuneIpcCmd_GetApiVersion = 5001,
 };

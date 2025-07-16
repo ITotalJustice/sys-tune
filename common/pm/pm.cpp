@@ -10,27 +10,41 @@ PdmAppletEvent CURRENT_PLAY_EVENT{};
 u64 LOST_FOCUS_EXPIRE_NS{};
 
 constexpr SystemAppletEntry SYSTEM_APPLET_IDS[] = {
-    { "qlaunch (home)", SystemAppletId_qlaunch, true },
-    { "auth", SystemAppletId_auth, false },
-    { "cabinet (All software)", SystemAppletId_cabinet, false },
-    { "controller", SystemAppletId_controller, false },
-    { "dataErase", SystemAppletId_dataErase, false },
-    { "error (error screen)", SystemAppletId_error, false },
-    { "netConnect", SystemAppletId_netConnect, false },
-    { "playerSelect", SystemAppletId_playerSelect, false },
-    { "swkbd (keyboard)", SystemAppletId_swkbd, false },
-    { "miiEdit", SystemAppletId_miiEdit, false },
-    { "LibAppletWeb (web)", SystemAppletId_LibAppletWeb, false },
-    { "LibAppletShop (eshop)", SystemAppletId_LibAppletShop, false },
+    { "Home menu", SystemAppletId_qlaunch, true },
+    { "Eshop", SystemAppletId_LibAppletShop, false },
+    { "Album", SystemAppletId_photoViewer, false },
+
+    // { "auth", SystemAppletId_auth, false },
+    // { "cabinet (All software)", SystemAppletId_cabinet, false },
+    // { "controller", SystemAppletId_controller, false },
+    // { "dataErase", SystemAppletId_dataErase, false },
+    { "Error screen", SystemAppletId_error, false },
+    // { "netConnect", SystemAppletId_netConnect, false },
+    // { "playerSelect", SystemAppletId_playerSelect, false },
+    // { "swkbd (keyboard)", SystemAppletId_swkbd, false },
+    // { "miiEdit", SystemAppletId_miiEdit, false },
+    // { "LibAppletWeb (web)", SystemAppletId_LibAppletWeb, false },
     // { "overlayDisp", SystemAppletId_overlayDisp, true },
-    { "photoViewer (album)", SystemAppletId_photoViewer, false },
-    { "LibAppletOff", SystemAppletId_LibAppletOff, false },
-    { "LibAppletLns", SystemAppletId_LibAppletLns, false },
-    { "LibAppletAuth", SystemAppletId_LibAppletAuth, false },
-    { "starter (lock screen)", SystemAppletId_starter, false },
-    { "myPage (user page)", SystemAppletId_myPage, false },
-    { "maintenance", SystemAppletId_maintenance, false },
-    { "splay", SystemAppletId_splay, false },
+    // { "LibAppletOff", SystemAppletId_LibAppletOff, false },
+    // { "LibAppletLns", SystemAppletId_LibAppletLns, false },
+    // { "LibAppletAuth", SystemAppletId_LibAppletAuth, false },
+    // { "starter (lock screen)", SystemAppletId_starter, false },
+    // { "myPage (user page)", SystemAppletId_myPage, false },
+    // { "maintenance", SystemAppletId_maintenance, false },
+    // { "splay", SystemAppletId_splay, false },
+};
+
+// array of ids to ignore when the application goes out of focus
+// due to one of these applets being launched, ie the application
+// launching the web browser should not start playing qlaunch music.
+constexpr u64 IGNORE_APPLET_IDS[] = {
+    SystemAppletId_auth,
+    SystemAppletId_controller,
+    SystemAppletId_netConnect,
+    SystemAppletId_playerSelect,
+    SystemAppletId_swkbd,
+    SystemAppletId_miiEdit,
+    SystemAppletId_LibAppletWeb,
 };
 
 }
@@ -86,6 +100,15 @@ void getCurrentPidTid(u64* pid_out, u64* tid_out) {
                     s32 total;
                     if (R_SUCCEEDED(pdmqryQueryAppletEvent(stats.last_entry_index, true, &CURRENT_PLAY_EVENT, 1, &total)) && total) {
                         if (CURRENT_PLAY_EVENT.event_type != PdmAppletEventType_InFocus) {
+                            // check if we lost focus because of an applet being launched.
+                            for (auto id : IGNORE_APPLET_IDS) {
+                                u64 temp_pid;
+                                if (R_SUCCEEDED(pmdmntGetProcessId(&temp_pid, id))) {
+                                    CURRENT_PLAY_EVENT.event_type = PdmAppletEventType_InFocus;
+                                    return;
+                                }
+                            }
+
                             // delay before reporting as qlaunch, workaround nro launching triggering events.
                             // todo: make configurable in config.
                             LOST_FOCUS_EXPIRE_NS = armTicksToNs(armGetSystemTick()) + 5e+8;

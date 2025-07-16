@@ -80,13 +80,13 @@ Result tuneSetVolume(float volume);
 
 /**
  * @brief Get the default playing mode for all titles.
- * @param[out] out.
+ * @param[out] out set if the default mode is play.
  */
 Result tuneGetDefaultTitlePlay(bool* out);
 
 /**
  * @brief Set the default playing mode for all titles.
- * @param[play] play.
+ * @param[play] play set to enable playing by default.
  */
 Result tuneSetDefaultTitlePlay(bool play);
 
@@ -160,14 +160,16 @@ Result tuneRemove(u32 index);
 /**
  * @brief Get the volume of the tune via override.
  * @param[id] application id of the title.
- * @param[out] out volume value (linear factor).
+ * @param[out] out set if the title should play when title is loaded.
+ * @param[has] set if the entry has been set.
  */
 Result tuneGetTunePlayOverride(u64 id, bool *out, bool* has);
 
 /**
  * @brief Set the volume of the tune via override.
  * @param[id] application id of the title.
- * @param[play] set to true to .
+ * @param[play] set to true to play when title is loaded.
+ * @param[reset] if set, the value is removed from override.
  */
 Result tuneSetTunePlayOverride(u64 id, bool play, bool reset);
 
@@ -182,34 +184,40 @@ Result tuneGetTuneVolumeOverride(u64 id, float *out, bool* has);
  * @brief Set the volume of the tune via override.
  * @param[id] application id of the title.
  * @param[in] volume volume value (linear factor).
+ * @param[reset] if set, the value is removed from override.
  */
 Result tuneSetTuneVolumeOverride(u64 id, float volume, bool reset);
 
 /**
- * @brief Get the volume of the current title via override.
+ * @brief Get the volume of the title via override.
  * @param[id] application id of the title.
  * @param[out] out volume value (linear factor).
+ * @param[has] set if the entry has been set.
  */
 Result tuneGetTitleVolumeOverride(u64 id, float *out, bool* has);
 
 /**
- * @brief Set the volume of the current title via override
+ * @brief Set the volume of the title via override
  * @param[id] application id of the title.
  * @param[in] volume volume value (linear factor).
+ * @param[reset] if set, the value is removed from override.
  */
 Result tuneSetTitleVolumeOverride(u64 id, float volume, bool reset);
 
 /**
- * @brief Get the volume of the current title
+ * @brief Get the music path for a title.
  * @param[id] application id of the title.
- * @param[out] out volume value (linear factor).
+ * @param[out] the music path to load from when the title is loaded.
+ * @param[out_length] size of out.
+ * @param[has] set if the entry has been set.
  */
 Result tuneGetTitleMusicPathOverride(u64 id, char *out, size_t out_length, bool* has);
 
 /**
- * @brief Set the volume of the current title.
+ * @brief Set the music path for a title.
  * @param[id] application id of the title.
- * @param[in] in volume value (linear factor).
+ * @param[path] the music path to load from when the title is loaded.
+ * @param[reset] if set, the value is removed from override.
  */
 Result tuneSetTitleMusicPathOverride(u64 id, const char* path, bool reset);
 
@@ -222,6 +230,9 @@ Result tuneHasOverride(u64 id, bool* out);
 Result tuneResetOverride(u64 id);
 Result tuneResetAllOverride(void);
 
+/**
+ * @brief Auto load song / folder when tune starts.
+ */
 Result tuneGetAutoPlayPath(char *out, size_t out_length);
 Result tuneSetAutoPlayPath(const char *path);
 
