@@ -13,25 +13,7 @@ constexpr SystemAppletEntry SYSTEM_APPLET_IDS[] = {
     { "Home menu", SystemAppletId_qlaunch, true },
     { "Eshop", SystemAppletId_LibAppletShop, false },
     { "Album", SystemAppletId_photoViewer, false },
-
-    // { "auth", SystemAppletId_auth, false },
-    // { "cabinet (All software)", SystemAppletId_cabinet, false },
-    // { "controller", SystemAppletId_controller, false },
-    // { "dataErase", SystemAppletId_dataErase, false },
     { "Error screen", SystemAppletId_error, false },
-    // { "netConnect", SystemAppletId_netConnect, false },
-    // { "playerSelect", SystemAppletId_playerSelect, false },
-    // { "swkbd (keyboard)", SystemAppletId_swkbd, false },
-    // { "miiEdit", SystemAppletId_miiEdit, false },
-    // { "LibAppletWeb (web)", SystemAppletId_LibAppletWeb, false },
-    // { "overlayDisp", SystemAppletId_overlayDisp, true },
-    // { "LibAppletOff", SystemAppletId_LibAppletOff, false },
-    // { "LibAppletLns", SystemAppletId_LibAppletLns, false },
-    // { "LibAppletAuth", SystemAppletId_LibAppletAuth, false },
-    // { "starter (lock screen)", SystemAppletId_starter, false },
-    // { "myPage (user page)", SystemAppletId_myPage, false },
-    // { "maintenance", SystemAppletId_maintenance, false },
-    // { "splay", SystemAppletId_splay, false },
 };
 
 // array of ids to ignore when the application goes out of focus
