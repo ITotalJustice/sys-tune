@@ -1,6 +1,5 @@
 #include "gui_browser.hpp"
 
-#include "config/config.hpp"
 #include "tune.h"
 
 namespace {
@@ -43,9 +42,8 @@ namespace {
 
 }
 
-
-BrowserGui::BrowserGui()
-    : m_fs(), has_music(), cwd("/") {
+BrowserGui::BrowserGui(const FilePickerCallback& cb)
+    : m_fs(), has_music(), cwd("/"), m_picker_callback{cb} {
     this->m_list = new tsl::elm::List();
 
     /* Open sd card filesystem. */
@@ -73,7 +71,12 @@ BrowserGui::~BrowserGui() {
 tsl::elm::Element *BrowserGui::createUI() {
     m_frame = new SysTuneOverlayFrame();
 
-    m_frame->setDescription("\uE0E1  Back     \uE0E0  Add    \uE0E2  Add All");
+    if (IsPicker()) {
+        m_frame->setDescription("\uE0E1  Back     \uE0E0  Select");
+    } else {
+        m_frame->setDescription("\uE0E1  Back     \uE0E0  Add    \uE0E2  Add All");
+    }
+
     m_frame->setContent(this->m_list);
 
     return m_frame;
@@ -87,7 +90,7 @@ bool BrowserGui::handleInput(u64 keysDown, u64, const HidTouchState&, HidAnalogS
             this->upCwd();
             return true;
         }
-    } else if (keysDown & HidNpadButton_X) {
+    } else if (!IsPicker() && (keysDown & HidNpadButton_X)) {
         this->addAllToPlaylist();
         return true;
     }
@@ -98,7 +101,9 @@ void BrowserGui::scanCwd() {
     tsl::Gui::removeFocus();
     this->m_list->clear();
 
-    this->m_list->addItem(new tsl::elm::CategoryHeader("\uE0E7  Play selected path on start up", true));
+    if (!IsPicker()) {
+        this->m_list->addItem(new tsl::elm::CategoryHeader("\uE0E7  Play selected path on start up", true));
+    }
 
     /* Show absolute folder path. */
     this->m_list->addItem(new tsl::elm::CategoryHeader(this->cwd, true));
@@ -142,9 +147,9 @@ void BrowserGui::scanCwd() {
                         std::strncat(this->cwd, "/", sizeof(this->cwd) - 1);
                         this->scanCwd();
                         return true;
-                    } else if (down & HidNpadButton_ZR) {
+                    } else if (!IsPicker() && (down & HidNpadButton_ZR)) {
                         std::snprintf(path_buffer, sizeof(path_buffer), "%s%s", this->cwd, item->getText().c_str());
-                        config::set_load_path(path_buffer);
+                        tuneSetAutoPlayPath(path_buffer);
                         m_frame->setToast("Set start up file", item->getText().c_str());
                         return true;
                     }
@@ -157,17 +162,23 @@ void BrowserGui::scanCwd() {
                 item->setClickListener([this, item](u64 down) -> bool {
                     if (down & HidNpadButton_A) {
                         std::snprintf(path_buffer, sizeof(path_buffer), "%s%s", this->cwd, item->getText().c_str());
-                        Result rc = tuneEnqueue(path_buffer, TuneEnqueueType_Back);
-                        if (R_SUCCEEDED(rc)) {
-                            m_frame->setToast("Playlist updated", "Added 1 song to Playlist.");
+
+                        if (IsPicker()) {
+                            m_picker_callback(path_buffer);
+                            tsl::goBack();
                         } else {
-                            m_frame->setToast("Failed to add Track.", "Does the name contain umlauts?");
+                            Result rc = tuneEnqueue(path_buffer, TuneEnqueueType_Back);
+                            if (R_SUCCEEDED(rc)) {
+                                m_frame->setToast("Playlist updated", "Added 1 song to Playlist.");
+                            } else {
+                                m_frame->setToast("Failed to add Track.", "Does the name contain umlauts?");
+                            }
                         }
                         return true;
-                    } else if (down & HidNpadButton_ZR) {
+                    } else if (!IsPicker() && (down & HidNpadButton_ZR)) {
                         std::snprintf(path_buffer, sizeof(path_buffer), "%s%s", this->cwd, item->getText().c_str());
-                        config::set_load_path(path_buffer);
-                        m_frame->setToast("Set start up file", path_buffer);
+                        tuneSetAutoPlayPath(path_buffer);
+                        m_frame->setToast("Set start up file", item->getText());
                         return true;
                     }
                     return false;
@@ -226,6 +237,11 @@ void BrowserGui::upCwd() {
 }
 
 void BrowserGui::addAllToPlaylist() {
+    // should never happen, but just in case, leave this here.
+    if (IsPicker()) {
+        return;
+    }
+
     FsDir dir;
     Result rc = fsFsOpenDirectory(&this->m_fs, this->cwd, FsDirOpenMode_ReadFiles|FsDirOpenMode_NoFileSize, &dir);
     if (R_FAILED(rc)) {

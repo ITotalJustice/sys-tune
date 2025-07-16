@@ -1,16 +1,39 @@
 #include "pm.hpp"
 
+namespace pm {
 namespace {
 
-constexpr u64 QLAUNCH_TITLE_ID{0x0100000000001000ULL};
 u64 CURRENT_TITLE_ID{};
+u64 CURRENT_PROCESS_ID{};
 PdmPlayStatistics CURRENT_PLAY_STATS{};
 PdmAppletEvent CURRENT_PLAY_EVENT{};
 u64 LOST_FOCUS_EXPIRE_NS{};
 
-}
+constexpr SystemAppletEntry SYSTEM_APPLET_IDS[] = {
+    { "qlaunch (home)", SystemAppletId_qlaunch, true },
+    { "auth", SystemAppletId_auth, false },
+    { "cabinet (All software)", SystemAppletId_cabinet, false },
+    { "controller", SystemAppletId_controller, false },
+    { "dataErase", SystemAppletId_dataErase, false },
+    { "error (error screen)", SystemAppletId_error, false },
+    { "netConnect", SystemAppletId_netConnect, false },
+    { "playerSelect", SystemAppletId_playerSelect, false },
+    { "swkbd (keyboard)", SystemAppletId_swkbd, false },
+    { "miiEdit", SystemAppletId_miiEdit, false },
+    { "LibAppletWeb (web)", SystemAppletId_LibAppletWeb, false },
+    { "LibAppletShop (eshop)", SystemAppletId_LibAppletShop, false },
+    // { "overlayDisp", SystemAppletId_overlayDisp, true },
+    { "photoViewer (album)", SystemAppletId_photoViewer, false },
+    { "LibAppletOff", SystemAppletId_LibAppletOff, false },
+    { "LibAppletLns", SystemAppletId_LibAppletLns, false },
+    { "LibAppletAuth", SystemAppletId_LibAppletAuth, false },
+    { "starter (lock screen)", SystemAppletId_starter, false },
+    { "myPage (user page)", SystemAppletId_myPage, false },
+    { "maintenance", SystemAppletId_maintenance, false },
+    { "splay", SystemAppletId_splay, false },
+};
 
-namespace pm {
+}
 
 auto Initialize() -> Result {
     Result rc;
@@ -31,12 +54,28 @@ void Exit() {
     pdmqryExit();
 }
 
+void SetPidTidToQlaunch(u64* pid_out, u64* tid_out) {
+    *tid_out = SystemAppletId_qlaunch;
+    pmdmntGetProcessId(pid_out, SystemAppletId_qlaunch);
+}
+
 // SOURCE: https://github.com/retronx-team/sys-clk/blob/570f1e5fe10b253eff0c8fda1bb893bb620af052/sysmodule/src/process_management.cpp#L37
 void getCurrentPidTid(u64* pid_out, u64* tid_out) {
+    *tid_out = CURRENT_TITLE_ID;
+    *pid_out = CURRENT_PROCESS_ID;
+
+    // check if one of the system applets is active.
+    for (auto& e : GetSystemAppletList()) {
+        if (!e.hidden && R_SUCCEEDED(pmdmntGetProcessId(pid_out, e.id))) {
+            *tid_out = e.id;
+            return;
+        }
+    }
+
     Result rc{};
     if (R_SUCCEEDED(rc = pmdmntGetApplicationProcessId(pid_out))) {
-        if (0x20f == pminfoGetProgramId(tid_out, *pid_out)){
-            *tid_out = QLAUNCH_TITLE_ID;
+        if (0x20f == pminfoGetProgramId(tid_out, *pid_out)) {
+            SetPidTidToQlaunch(pid_out, tid_out);
         } else {
             // check if we have focus, if not, report as qlaunch.
             PdmPlayStatistics stats;
@@ -55,27 +94,33 @@ void getCurrentPidTid(u64* pid_out, u64* tid_out) {
                 } else if (CURRENT_PLAY_EVENT.event_type != PdmAppletEventType_InFocus) {
                     const auto now = armTicksToNs(armGetSystemTick());
                     if (now >= LOST_FOCUS_EXPIRE_NS) {
-                        *tid_out = QLAUNCH_TITLE_ID;
+                        SetPidTidToQlaunch(pid_out, tid_out);
                     }
                 }
             }
         }
     } else if (rc == 0x20f) {
-        *tid_out = QLAUNCH_TITLE_ID;
+        SetPidTidToQlaunch(pid_out, tid_out);
     } else {
         *tid_out = CURRENT_TITLE_ID;
+        *pid_out = CURRENT_PROCESS_ID;
     }
 }
 
 auto PollCurrentPidTid(u64* pid_out, u64* tid_out) -> bool {
     getCurrentPidTid(pid_out, tid_out);
 
-    if (*tid_out != CURRENT_TITLE_ID) {
+    if (*tid_out != CURRENT_TITLE_ID || *pid_out != CURRENT_PROCESS_ID) {
         CURRENT_TITLE_ID = *tid_out;
+        CURRENT_PROCESS_ID = *pid_out;
         return true;
     }
 
     return false;
+}
+
+auto GetSystemAppletList() -> std::span<const SystemAppletEntry> {
+    return SYSTEM_APPLET_IDS;
 }
 
 }

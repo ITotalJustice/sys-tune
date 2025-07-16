@@ -6,6 +6,21 @@ extern "C" {
 
 #include <switch.h>
 
+enum { TuneModule = 420 };
+
+typedef enum {
+    TuneResult_InvalidArgument  = MAKERESULT(TuneModule, 1),
+    TuneResult_InvalidPath      = MAKERESULT(TuneModule, 2),
+    TuneResult_FileNotFound     = MAKERESULT(TuneModule, 3),
+    TuneResult_QueueEmpty       = MAKERESULT(TuneModule, 10),
+    TuneResult_NotPlaying       = MAKERESULT(TuneModule, 11),
+    TuneResult_OutOfRange       = MAKERESULT(TuneModule, 12),
+    TuneResult_FileOpenFailure  = MAKERESULT(TuneModule, 20),
+    TuneResult_VoiceInitFailure = MAKERESULT(TuneModule, 21),
+    TuneResult_OutOfMemory      = MAKERESULT(TuneModule, 30),
+    TuneResult_Generic          = MAKERESULT(TuneModule, 40),
+} TuneResult;
+
 typedef enum {
     TuneShuffleMode_Off,
     TuneShuffleMode_On,
@@ -64,16 +79,16 @@ Result tuneGetVolume(float *out);
 Result tuneSetVolume(float volume);
 
 /**
- * @brief Get the volume of the current title
- * @param[out] out volume value (linear factor).
+ * @brief Get the default playing mode for all titles.
+ * @param[out] out.
  */
-Result tuneGetTitleVolume(float *out);
+Result tuneGetDefaultTitlePlay(bool* out);
 
 /**
- * @brief Set the volume of the current title
- * @param[in] volume volume value (linear factor).
+ * @brief Set the default playing mode for all titles.
+ * @param[play] play.
  */
-Result tuneSetTitleVolume(float volume);
+Result tuneSetDefaultTitlePlay(bool play);
 
 /**
  * @brief Get the default volume of all titles
@@ -141,6 +156,75 @@ Result tuneSeek(u32 position);
 Result tuneEnqueue(const char *path, TuneEnqueueType type);
 
 Result tuneRemove(u32 index);
+
+/**
+ * @brief Get the volume of the tune via override.
+ * @param[id] application id of the title.
+ * @param[out] out volume value (linear factor).
+ */
+Result tuneGetTunePlayOverride(u64 id, bool *out, bool* has);
+
+/**
+ * @brief Set the volume of the tune via override.
+ * @param[id] application id of the title.
+ * @param[play] set to true to .
+ */
+Result tuneSetTunePlayOverride(u64 id, bool play, bool reset);
+
+/**
+ * @brief Get the volume of the tune via override.
+ * @param[id] application id of the title.
+ * @param[out] out volume value (linear factor).
+ */
+Result tuneGetTuneVolumeOverride(u64 id, float *out, bool* has);
+
+/**
+ * @brief Set the volume of the tune via override.
+ * @param[id] application id of the title.
+ * @param[in] volume volume value (linear factor).
+ */
+Result tuneSetTuneVolumeOverride(u64 id, float volume, bool reset);
+
+/**
+ * @brief Get the volume of the current title via override.
+ * @param[id] application id of the title.
+ * @param[out] out volume value (linear factor).
+ */
+Result tuneGetTitleVolumeOverride(u64 id, float *out, bool* has);
+
+/**
+ * @brief Set the volume of the current title via override
+ * @param[id] application id of the title.
+ * @param[in] volume volume value (linear factor).
+ */
+Result tuneSetTitleVolumeOverride(u64 id, float volume, bool reset);
+
+/**
+ * @brief Get the volume of the current title
+ * @param[id] application id of the title.
+ * @param[out] out volume value (linear factor).
+ */
+Result tuneGetTitleMusicPathOverride(u64 id, char *out, size_t out_length, bool* has);
+
+/**
+ * @brief Set the volume of the current title.
+ * @param[id] application id of the title.
+ * @param[in] in volume value (linear factor).
+ */
+Result tuneSetTitleMusicPathOverride(u64 id, const char* path, bool reset);
+
+/**
+ * @brief Check if the title has any override values.
+ * @param[id] application id of the title.
+ * @param[out] out set if the title has anything overriden.
+ */
+Result tuneHasOverride(u64 id, bool* out);
+Result tuneResetOverride(u64 id);
+Result tuneResetAllOverride(void);
+
+Result tuneGetAutoPlayPath(char *out, size_t out_length);
+Result tuneSetAutoPlayPath(const char *path);
+
 
 Result tuneQuit();
 

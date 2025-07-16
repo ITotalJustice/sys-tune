@@ -49,12 +49,12 @@ Result tuneSetVolume(float volume) {
     return serviceDispatchIn(&g_tune, TuneIpcCmd_SetVolume, volume);
 }
 
-Result tuneGetTitleVolume(float *out) {
-    return serviceDispatchOut(&g_tune, TuneIpcCmd_GetTitleVolume, *out);
+Result tuneGetDefaultTitlePlay(bool* out) {
+    return serviceDispatchOut(&g_tune, TuneIpcCmd_GetDefaultTitlePlay, *out);
 }
 
-Result tuneSetTitleVolume(float volume) {
-    return serviceDispatchIn(&g_tune, TuneIpcCmd_SetTitleVolume, volume);
+Result tuneSetDefaultTitlePlay(bool play) {
+    return serviceDispatchIn(&g_tune, TuneIpcCmd_SetDefaultTitlePlay, play);
 }
 
 Result tuneGetDefaultTitleVolume(float *out) {
@@ -128,7 +128,7 @@ Result tuneSeek(u32 position) {
 
 Result tuneEnqueue(const char *path, TuneEnqueueType type) {
     u8 tmp = type;
-    size_t path_length = strlen(path);
+    size_t path_length = strlen(path) + 1;
     return serviceDispatchIn(&g_tune, TuneIpcCmd_Enqueue, tmp,
                              .buffer_attrs = {SfBufferAttr_In | SfBufferAttr_HipcMapAlias},
                              .buffers = {{path, path_length}}, );
@@ -144,4 +144,122 @@ Result tuneQuit() {
 
 Result tuneGetApiVersion(u32 *version) {
     return serviceDispatchOut(&g_tune, TuneIpcCmd_GetApiVersion, *version);
+}
+
+Result tuneGetTunePlayOverride(u64 id, bool *out, bool* has) {
+    struct {
+        bool out;
+        bool has;
+    } out_data;
+
+    const Result rc = serviceDispatchInOut(&g_tune, TuneIpcCmd_GetTunePlayOverride, id, out_data);
+    if (R_SUCCEEDED(rc) && out)
+        *out = out_data.out;
+    if (R_SUCCEEDED(rc) && has)
+        *has = out_data.has;
+
+    return rc;
+}
+
+Result tuneSetTunePlayOverride(u64 id, bool play, bool reset) {
+    const struct {
+        u64 id;
+        bool play;
+        bool reset;
+    } in_data = { id, play, reset };
+
+    return serviceDispatchIn(&g_tune, TuneIpcCmd_SetTunePlayOverride, in_data);
+}
+
+Result tuneGetTuneVolumeOverride(u64 id, float *out, bool* has) {
+    struct {
+        float out;
+        bool has;
+    } out_data;
+
+    const Result rc = serviceDispatchInOut(&g_tune, TuneIpcCmd_GetTuneVolumeOverride, id, out_data);
+    if (R_SUCCEEDED(rc) && out)
+        *out = out_data.out;
+    if (R_SUCCEEDED(rc) && has)
+        *has = out_data.has;
+
+    return rc;
+}
+
+Result tuneSetTuneVolumeOverride(u64 id, float volume, bool reset) {
+    const struct {
+        u64 id;
+        float volume;
+        bool reset;
+    } in_data = { id, volume, reset };
+
+    return serviceDispatchIn(&g_tune, TuneIpcCmd_SetTuneVolumeOverride, in_data);
+}
+
+Result tuneGetTitleVolumeOverride(u64 id, float *out, bool* has) {
+    struct {
+        float out;
+        bool has;
+    } out_data;
+
+    const Result rc = serviceDispatchInOut(&g_tune, TuneIpcCmd_GetTitleVolumeOverride, id, out_data);
+    if (R_SUCCEEDED(rc) && out)
+        *out = out_data.out;
+    if (R_SUCCEEDED(rc) && has)
+        *has = out_data.has;
+
+    return rc;
+}
+
+Result tuneSetTitleVolumeOverride(u64 id, float volume, bool reset) {
+    const struct {
+        u64 id;
+        float volume;
+        bool reset;
+    } in_data = { id, volume, reset };
+
+    return serviceDispatchIn(&g_tune, TuneIpcCmd_SetTitleVolumeOverride, in_data);
+}
+
+Result tuneGetTitleMusicPathOverride(u64 id, char *out, size_t out_length, bool* has) {
+    return serviceDispatchInOut(&g_tune, TuneIpcCmd_GetTitleMusicPathOverride, id, *has,
+                              .buffer_attrs = {SfBufferAttr_Out | SfBufferAttr_HipcMapAlias},
+                              .buffers = {{out, out_length}}, );
+}
+
+Result tuneSetTitleMusicPathOverride(u64 id, const char* path, bool reset) {
+    const struct {
+        u64 id;
+        bool reset;
+    } in_data = { id, reset };
+
+    const size_t path_length = strlen(path) + 1;
+    return serviceDispatchIn(&g_tune, TuneIpcCmd_SetTitleMusicPathOverride, in_data,
+                             .buffer_attrs = {SfBufferAttr_In | SfBufferAttr_HipcMapAlias},
+                             .buffers = {{path, path_length}}, );
+}
+
+Result tuneHasOverride(u64 id, bool* out) {
+    return serviceDispatchInOut(&g_tune, TuneIpcCmd_HasOverride, id, *out);
+}
+
+Result tuneResetOverride(u64 id) {
+    return serviceDispatchIn(&g_tune, TuneIpcCmd_ResetOverride, id);
+}
+
+Result tuneResetAllOverride(void) {
+    return serviceDispatch(&g_tune, TuneIpcCmd_ResetAllOverride);
+}
+
+Result tuneGetAutoPlayPath(char *out, size_t out_length) {
+    return serviceDispatch(&g_tune, TuneIpcCmd_GetAutoPlayPath,
+                              .buffer_attrs = {SfBufferAttr_Out | SfBufferAttr_HipcMapAlias},
+                              .buffers = {{out, out_length}}, );
+}
+
+Result tuneSetAutoPlayPath(const char *path) {
+    const size_t path_length = strlen(path) + 1;
+    return serviceDispatch(&g_tune, TuneIpcCmd_SetAutoPlayPath,
+                              .buffer_attrs = {SfBufferAttr_In | SfBufferAttr_HipcMapAlias},
+                              .buffers = {{path, path_length}}, );
 }

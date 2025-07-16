@@ -4,7 +4,6 @@
 #include "gui_main.hpp"
 #include "sdmc/sdmc.hpp"
 #include "pm/pm.hpp"
-#include "config/config.hpp"
 
 #include <tesla.hpp>
 
@@ -15,10 +14,6 @@ class SysTuneOverlay final : public tsl::Overlay {
 
   public:
     void initServices() override {
-        if (R_FAILED(pm::Initialize())) {
-            this->msg  = "Failed pm::Initialize()";
-            return;
-        }
         Result rc = tuneInitialize();
 
         // not found can happen if the service isn't started
@@ -55,6 +50,11 @@ class SysTuneOverlay final : public tsl::Overlay {
             return;
         }
 
+        if (R_FAILED(nsInitialize())) {
+            this->msg  = "Failed nsInitialize()";
+            return;
+        }
+
         u32 api;
         if (R_FAILED(tuneGetApiVersion(&api)) || api != TUNE_API_VERSION) {
             this->msg = "   Unsupported\n"
@@ -63,8 +63,8 @@ class SysTuneOverlay final : public tsl::Overlay {
     }
 
     void exitServices() override {
+        nsExit();
         sdmc::Close();
-        pm::Exit();
         tuneExit();
     }
 

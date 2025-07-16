@@ -9,8 +9,9 @@ enum TuneIpcCmd {
 
     TuneIpcCmd_GetVolume = 10,
     TuneIpcCmd_SetVolume = 11,
-    TuneIpcCmd_GetTitleVolume = 12,
-    TuneIpcCmd_SetTitleVolume = 13,
+
+    TuneIpcCmd_GetDefaultTitlePlay = 12,
+    TuneIpcCmd_SetDefaultTitlePlay = 13,
     TuneIpcCmd_GetDefaultTitleVolume = 14,
     TuneIpcCmd_SetDefaultTitleVolume = 15,
 
@@ -31,6 +32,21 @@ enum TuneIpcCmd {
     TuneIpcCmd_Remove = 41,
 
     TuneIpcCmd_QuitServer = 50,
+
+    TuneIpcCmd_GetTunePlayOverride = 60,
+    TuneIpcCmd_SetTunePlayOverride = 61,
+    TuneIpcCmd_GetTuneVolumeOverride = 62,
+    TuneIpcCmd_SetTuneVolumeOverride = 63,
+    TuneIpcCmd_GetTitleVolumeOverride = 64,
+    TuneIpcCmd_SetTitleVolumeOverride = 65,
+    TuneIpcCmd_GetTitleMusicPathOverride = 67,
+    TuneIpcCmd_SetTitleMusicPathOverride = 68,
+    TuneIpcCmd_HasOverride = 69,
+    TuneIpcCmd_ResetOverride = 70,
+    TuneIpcCmd_ResetAllOverride = 71,
+
+    TuneIpcCmd_GetAutoPlayPath = 80,
+    TuneIpcCmd_SetAutoPlayPath = 81,
 
     TuneIpcCmd_GetApiVersion = 5000,
 };

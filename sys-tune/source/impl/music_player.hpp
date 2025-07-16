@@ -21,15 +21,11 @@ namespace tune::impl {
 
     float GetVolume();
     void SetVolume(float volume);
-    float GetTitleVolume();
-    void SetTitleVolume(float volume);
+
+    bool GetDefaultTitlePlay();
+    void SetDefaultTitlePlay(bool play);
     float GetDefaultTitleVolume();
     void SetDefaultTitleVolume(float volume);
-
-    void TitlePlay();
-    void TitlePause();
-    void DefaultTitlePlay();
-    void DefaultTitlePause();
 
     RepeatMode GetRepeatMode();
     void SetRepeatMode(RepeatMode mode);
@@ -44,7 +40,21 @@ namespace tune::impl {
     void Select(u32 index);
     void Seek(u32 position);
 
-    Result Enqueue(const char* buffer, size_t buffer_length, EnqueueType type);
+    Result Enqueue(const char* buffer, EnqueueType type);
     Result Remove(u32 index);
 
+    void GetTunePlayOverride(u64 id, bool *out, bool* has);
+    void SetTunePlayOverride(u64 id, bool play, bool reset);
+    void GetTuneVolumeOverride(u64 id, float *out, bool* has);
+    void SetTuneVolumeOverride(u64 id, float volume, bool reset);
+    void GetTitleVolumeOverride(u64 id, float *out, bool* has);
+    void SetTitleVolumeOverride(u64 id, float volume, bool reset);
+    void GetTitleMusicPathOverride(u64 id, char *out, size_t out_length, bool* has);
+    void SetTitleMusicPathOverride(u64 id, const char* path, bool reset);
+    bool HasOverride(u64 id);
+    void ResetOverride(u64 id);
+    void ResetAllOverride();
+
+    void GetAutoPlayPath(char *out, size_t out_length);
+    void SetAutoPlayPath(const char *path);
 }

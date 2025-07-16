@@ -1,16 +1,15 @@
 #pragma once
 
 #include <tesla.hpp>
+#include <vector>
 
-#include "elm_overlayframe.hpp"
-
-class PlaylistGui final : public tsl::Gui {
+class TitlelistGui final : public tsl::Gui {
   private:
     tsl::elm::List *m_list;
-    SysTuneOverlayFrame* m_frame;
+    std::vector<u64> m_ids;
 
   public:
-    PlaylistGui();
+    TitlelistGui(bool applet_list);
 
     tsl::elm::Element *createUI() override;
     void update() override;

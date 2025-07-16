@@ -13,6 +13,7 @@ namespace sdmc {
     Result GetType(const char* path, FsDirEntryType* type);
     bool FileExists(const char* path);
 
+    Result DeleteFile(const char* path);
     Result CreateFolder(const char* path);
 
 }

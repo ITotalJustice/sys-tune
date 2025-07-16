@@ -1,7 +1,6 @@
 #include "gui_playlist.hpp"
 
 #include "elm_overlayframe.hpp"
-#include "config/config.hpp"
 #include "tune.h"
 
 namespace {
@@ -69,16 +68,14 @@ PlaylistGui::PlaylistGui() {
         return;
     }
 
-    char current_path[FS_MAX_PATH];
-    TuneCurrentStats current_stats;
-    rc = tuneGetCurrentQueueItem(current_path, sizeof(current_path), &current_stats);
-    if (R_FAILED(rc)) {
-        char result_buffer[0x10];
-        std::snprintf(result_buffer, 0x10, "2%03X-%04X", R_MODULE(rc), R_DESCRIPTION(rc));
-        this->m_list->addItem(new tsl::elm::ListItem("failed to get current item"));
-        this->m_list->addItem(new tsl::elm::ListItem(result_buffer));
-        return;
-    }
+    // this will fail if a title override music has finished playing
+    // because it will not be in the playlist, and g_current will be empty
+    // so nothing is returned.
+    // we ignore this error so that the playlist is still visbile to the user so that
+    // they ccan select another song to play.
+    char current_path[FS_MAX_PATH]{};
+    TuneCurrentStats current_stats{};
+    tuneGetCurrentQueueItem(current_path, sizeof(current_path), &current_stats);
 
     m_list->addItem(new tsl::elm::CategoryHeader("\uE0E2  To remove all      \uE0E7  Play on start up", true));
 
@@ -138,9 +135,8 @@ PlaylistGui::PlaylistGui() {
             } else if (keys & HidNpadButton_ZR) {
                 char path[FS_MAX_PATH];
                 if (R_SUCCEEDED(tuneGetPlaylistItem(tune_index, path, sizeof(path)))) {
-                    config::set_load_path(path);
-                    // todo: toast
-                    // m_frame->setToast("Set start up file", item->getText().c_str());
+                    tuneSetAutoPlayPath(path);
+                    m_frame->setToast("Set start up file", item->getText().c_str());
                 }
                 return true;
             }
@@ -156,12 +152,12 @@ PlaylistGui::PlaylistGui() {
 }
 
 tsl::elm::Element *PlaylistGui::createUI() {
-    auto rootFrame = new SysTuneOverlayFrame();
+    m_frame = new SysTuneOverlayFrame();
 
-    rootFrame->setContent(this->m_list);
-    rootFrame->setDescription("\uE0E1  Back     \uE0E0  Play   \uE0E3  Remove");
+    m_frame->setContent(this->m_list);
+    m_frame->setDescription("\uE0E1  Back     \uE0E0  Play   \uE0E3  Remove");
 
-    return rootFrame;
+    return m_frame;
 }
 
 void PlaylistGui::update()  {

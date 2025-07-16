@@ -39,6 +39,11 @@ namespace sdmc {
         return R_SUCCEEDED(GetType(path, &type)) && type == FsDirEntryType_File;
     }
 
+    Result DeleteFile(const char* path) {
+        std::strcpy(path_buffer, path);
+        return fsFsDeleteFile(&sdmc, path);
+    }
+
     Result CreateFolder(const char* path) {
         std::strcpy(path_buffer, path);
         return fsFsCreateDirectory(&sdmc, path_buffer);

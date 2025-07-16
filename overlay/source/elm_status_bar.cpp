@@ -1,7 +1,6 @@
 #include "elm_status_bar.hpp"
 
 #include "symbol.hpp"
-#include "config/config.hpp"
 
 namespace {
 
@@ -243,13 +242,11 @@ void StatusBar::update() {
 
 void StatusBar::CycleRepeat() {
     this->m_repeat = static_cast<TuneRepeatMode>((this->m_repeat + 1) % TuneRepeatMode_Count);
-    config::set_repeat(this->m_repeat);
     tuneSetRepeatMode(this->m_repeat);
 }
 
 void StatusBar::CycleShuffle() {
     this->m_shuffle = static_cast<TuneShuffleMode>((this->m_shuffle + 1) % TuneShuffleMode_Count);
-    config::set_shuffle(this->m_shuffle);
     tuneSetShuffleMode(this->m_shuffle);
 }
 
