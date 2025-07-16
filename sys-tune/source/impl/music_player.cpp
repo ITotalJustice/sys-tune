@@ -224,32 +224,21 @@ namespace tune::impl {
                 };
 
                 void Reset() {
-                    m_last_list.reset();
-                    m_last_song.reset();
+                    m_entry.reset();
                 }
 
-                void Push(const std::string& path, u32 offset, bool playlist) {
-                    GetType(playlist).emplace(path, offset);
+                void Push(const std::string& path, u32 offset) {
+                    m_entry.emplace(path, offset);
                 }
 
-                auto Pop(bool playlist) -> std::optional<LastSongEntry> {
-                    auto& e = GetType(playlist);
-                    auto result = e;
-                    e.reset();
+                auto Pop() -> std::optional<LastSongEntry> {
+                    auto result = m_entry;
+                    m_entry.reset();
                     return result;
                 }
 
             private:
-                auto GetType(bool list) -> std::optional<LastSongEntry>& {
-                    if (list) {
-                        return m_last_list;
-                    } else {
-                        return m_last_song;
-                    }
-                }
-
-                std::optional<LastSongEntry> m_last_list;
-                std::optional<LastSongEntry> m_last_song;
+                std::optional<LastSongEntry> m_entry;
         };
 
         struct CurrentSong final : PlaylistID {
@@ -324,7 +313,7 @@ namespace tune::impl {
 
             // check if we are loading back a previous song that was overriden.
             if (loaded_from_playlist) {
-                if (const auto last = g_last_song.Pop(loaded_from_playlist)) {
+                if (const auto last = g_last_song.Pop()) {
                     if (last->path == path) {
                         source->Seek(last->offset);
                     }
@@ -403,7 +392,7 @@ namespace tune::impl {
 
             // if we are loading a song override, save the path and offset to resume from.
             if (loaded_from_playlist && !g_title_music_override.empty() && g_status == PlayerStatus::FetchNext && !error && !source->Done()) {
-                g_last_song.Push(path, source->Tell().first, loaded_from_playlist);
+                g_last_song.Push(path, source->Tell().first);
             }
 
             g_source = nullptr;
