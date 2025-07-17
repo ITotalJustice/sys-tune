@@ -327,13 +327,13 @@ namespace tune::impl {
 
             g_title_music_override.clear();
             g_source = source.get();
+            ON_SCOPE_EXIT( g_source = nullptr );
 
             // for the first buffer, use very small buffer sizes to reduce latency between songs.
             int first = 1;
 
             // keep track of current pause state.
             bool should_play = g_should_play;
-            bool error = false;
 
             while (g_should_run && g_status == PlayerStatus::Playing) {
                 // stop audout of pause changes so that we don't drop samples.
@@ -374,16 +374,18 @@ namespace tune::impl {
                     }
 
                     const auto nSamples = source->Resample((u8*)buffer->buffer, buffer_size);
-                    if (nSamples <= 0) {
-                        error = true;
-                    } else {
-                        buffer->data_size = nSamples;
-                        R_TRY(audoutAppendAudioOutBuffer(buffer));
-                    }
+                    R_UNLESS(nSamples > 0, TuneResult_FileOpenFailure);
+
+                    buffer->data_size = nSamples;
+                    R_TRY(audoutAppendAudioOutBuffer(buffer));
                 }
 
-                if (error || source->Done()) {
-                    if (g_repeat != RepeatMode::One && !g_music_path_current) {
+                if (source->Done()) {
+                    if (g_repeat == RepeatMode::One && !g_music_path_current) {
+                        if (source->Seek(0)) {
+                            continue;
+                        }
+                    } else if (g_repeat != RepeatMode::One && !g_music_path_current) {
                         Next();
                     }
                     break;
@@ -391,11 +393,9 @@ namespace tune::impl {
             }
 
             // if we are loading a song override, save the path and offset to resume from.
-            if (loaded_from_playlist && !g_title_music_override.empty() && g_status == PlayerStatus::FetchNext && !error && !source->Done()) {
+            if (loaded_from_playlist && !g_title_music_override.empty() && g_status == PlayerStatus::FetchNext && !source->Done()) {
                 g_last_song.Push(path, source->Tell().first);
             }
-
-            g_source = nullptr;
 
             return 0;
         }

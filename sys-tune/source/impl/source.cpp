@@ -192,6 +192,12 @@ s64 Source::Resample(u8* out, std::size_t size) {
 }
 
 size_t Source::ReadFile(void *_buffer, size_t read_size) {
+#if 0
+    u64 bytes_read = 0;
+    fsFileRead(&this->m_file, this->m_offset, _buffer, read_size, 0, &bytes_read);
+    this->m_offset += bytes_read;
+    return bytes_read;
+#else
     auto dst = static_cast<u8*>(_buffer);
     size_t amount = 0;
 
@@ -212,6 +218,8 @@ size_t Source::ReadFile(void *_buffer, size_t read_size) {
 
     if (read_size) {
         u64 bytes_read = 0;
+        m_buffered.off = 0;
+        m_buffered.size = 0;
 
         // if the dst dst is big enough, read data in place.
         if (read_size >= sizeof(m_buffered.data)) {
@@ -242,6 +250,7 @@ size_t Source::ReadFile(void *_buffer, size_t read_size) {
     }
 
     return amount;
+#endif
 }
 
 bool Source::SeekFile(s64 offset, int origin) {
@@ -275,7 +284,7 @@ s64 Source::TellFile() {
 bool Source::Done() {
     auto [current, total] = this->Tell();
 
-    return current == total;
+    return current >= total;
 }
 
 #ifdef WANT_FLAC
