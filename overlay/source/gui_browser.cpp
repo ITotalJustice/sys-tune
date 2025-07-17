@@ -27,6 +27,9 @@ namespace {
         ".wav",
         ".wave",
 #endif
+#ifdef WANT_OGG
+        ".ogg",
+#endif
     };
 
     bool SupportsType(const char *name) {

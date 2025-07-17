@@ -4,6 +4,7 @@ export API_VERSION 	:= 4
 export WANT_FLAC 	:= 1
 export WANT_MP3 	:= 1
 export WANT_WAV 	:= 1
+export WANT_OGG 	:= 1
 
 all: overlay nxExt module
 

@@ -12,7 +12,7 @@
                 "${workspaceFolder}/ipc/",
                 "${workspaceFolder}/common/"
             ],
-            "defines": ["__SWITCH__", "WANT_MP3", "WANT_FLAC", "WANT_WAV"],
+            "defines": ["__SWITCH__", "WANT_MP3", "WANT_FLAC", "WANT_WAV", "WANT_OGG"],
             "cStandard": "gnu17",
             "cppStandard": "gnu++23",
             "compilerPath": "${DEVKITPRO}/devkitA64/bin/aarch64-none-elf-gcc"

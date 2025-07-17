@@ -9,6 +9,7 @@ enum class SourceType {
     MP3,
     FLAC,
     WAV,
+    OGG,
 };
 
 class Source {
@@ -59,6 +60,7 @@ class Source {
     size_t ReadFile(void *buffer, size_t read_size);
     s64 TellFile();
     bool SeekFile(s64 offset, int origin);
+    s64 GetFileSize() const;
 
     virtual bool IsOpen() = 0;
     virtual size_t Decode(size_t sample_count, s16 *data) = 0;

@@ -25,6 +25,19 @@
 #include "dr_wav.h"
 #endif
 
+#ifdef WANT_OGG
+#include <math.h>
+#define STB_VORBIS_NO_PUSHDATA_API
+#define STB_VORBIS_MAX_CHANNELS 2
+#define STB_VORBIS_NO_COMMENTS
+#define STB_VORBIS_DIVIDES_IN_CODEBOOK
+#define STB_VORBIS_DIVIDES_IN_RESIDUE
+#define STB_VORBIS_NO_HUFFMAN_BINARY_SEARCH
+#define STB_VORBIS_NO_CRT
+#define STB_VORBIS_NO_STDIO
+#include "stb_vorbis.h"
+#endif
+
 namespace {
 
     enum SeekOrigin {
@@ -81,6 +94,26 @@ namespace {
 
         *pCursor = data->TellFile();
         return true;
+    }
+#endif
+
+#ifdef WANT_OGG
+    long stb_vorbis_ftell_callback(void *pUserData) {
+        auto data = static_cast<Source *>(pUserData);
+
+        return data->TellFile();
+    }
+
+    int stb_vorbis_fseek_callback(void *pUserData, long offset, int origin) {
+        auto data = static_cast<Source *>(pUserData);
+
+        return !data->SeekFile(offset, origin);
+    }
+
+    size_t stb_vorbis_fread_callback(void *pUserData, void *pBufferOut, size_t bytesToRead) {
+        auto data = static_cast<Source *>(pUserData);
+
+        return data->ReadFile(pBufferOut, bytesToRead);
     }
 #endif
 
@@ -281,6 +314,10 @@ s64 Source::TellFile() {
     return this->m_offset;
 }
 
+s64 Source::GetFileSize() const {
+    return this->m_size;
+}
+
 bool Source::Done() {
     auto [current, total] = this->Tell();
 
@@ -436,6 +473,77 @@ class WavFile final : public Source {
 };
 #endif
 
+#ifdef WANT_OGG
+class OggFile final : public Source {
+  private:
+    stb_vorbis* m_ogg{};
+    bool initialized{};
+    stb_vorbis_info m_info{};
+    s32 m_length_samples{};
+    std::unique_ptr<char[]> m_alloc_buf{};
+
+  public:
+    OggFile(FsFile &&file) : Source(std::move(file)) {
+        const u64 ALLOC_SIZE = 1024 * 200;
+        m_alloc_buf = std::make_unique<char[]>(ALLOC_SIZE);
+
+        const stb_vorbis_io io = {
+            .user = this,
+            .ftell = stb_vorbis_ftell_callback,
+            .fseek = stb_vorbis_fseek_callback,
+            .fread = stb_vorbis_fread_callback,
+            .fclose = NULL,
+        };
+
+        const stb_vorbis_alloc alloc = {
+            .alloc_buffer = m_alloc_buf.get(),
+            .alloc_buffer_length_in_bytes = ALLOC_SIZE,
+        };
+
+        int error;
+        m_ogg = stb_vorbis_open_io(&io, &error, &alloc, GetFileSize());
+        if (m_ogg || error != VORBIS__no_error) {
+            this->m_info = stb_vorbis_get_info(m_ogg);
+            this->m_length_samples = stb_vorbis_stream_length_in_samples(m_ogg);
+            this->initialized = true;
+        }
+    }
+    ~OggFile() {
+        if (m_ogg)
+            stb_vorbis_close(m_ogg);
+    }
+
+    bool IsOpen() override {
+        return initialized;
+    }
+
+    size_t Decode(size_t sample_count, s16 *data) override {
+        std::scoped_lock lk(this->m_mutex);
+        return stb_vorbis_get_samples_short_interleaved(m_ogg, this->m_info.channels, data, sample_count) * GetChannelCount() * sizeof(s16);
+    }
+
+    std::pair<u32, u32> Tell() override {
+        std::scoped_lock lk(this->m_mutex);
+
+        return {m_ogg->current_loc, m_length_samples};
+    }
+
+    bool Seek(u64 target) override {
+        std::scoped_lock lk(this->m_mutex);
+
+        return stb_vorbis_seek(this->m_ogg, target);
+    }
+
+    int GetSampleRate() override {
+        return this->m_info.sample_rate;
+    }
+
+    int GetChannelCount() override {
+        return this->m_info.channels;
+    }
+};
+#endif
+
 std::unique_ptr<Source> OpenFile(const char *path) {
     const auto type = GetSourceType(path);
     if (type == SourceType::NONE)
@@ -462,6 +570,11 @@ std::unique_ptr<Source> OpenFile(const char *path) {
         return std::make_unique<WavFile>(std::move(file));
     }
 #endif
+#ifdef WANT_OGG
+    else if (type == SourceType::OGG) {
+        return std::make_unique<OggFile>(std::move(file));
+    }
+#endif
     else {
         fsFileClose(&file);
         return nullptr;
@@ -480,6 +593,8 @@ SourceType GetSourceType(const char* path) {
         return SourceType::FLAC;
     } else if (!strcasecmp(ext, ".wav") || !strcasecmp(ext, ".wave")) {
         return SourceType::WAV;
+    } else if (!strcasecmp(ext, ".ogg")) {
+        return SourceType::OGG;
     }
 
     return SourceType::NONE;
