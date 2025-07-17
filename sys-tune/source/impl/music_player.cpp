@@ -351,6 +351,7 @@ namespace tune::impl {
                     continue;
                 }
 
+                /* Check if have a buffer that's not yet been submitted or has been released. */
                 AudioOutBuffer* buffer = NULL;
                 for (int i = 0; i < AUDIO_BUFFER_COUNT; i++) {
                     bool has_buffer = false;
@@ -361,25 +362,31 @@ namespace tune::impl {
                     }
                 }
 
+                /* If we don't have a buffer free, wait until one of the pending buffers has finished. */
                 if (!buffer) {
                     u32 released_count;
                     R_TRY(audoutWaitPlayFinish(&buffer, &released_count, UINT64_MAX));
                 }
 
-                if (buffer) {
-                    auto buffer_size = AUDIO_BUFFER_SIZE * sizeof(s16);
-                    if (first) {
-                        first--;
-                        buffer_size = std::min(512 * sizeof(s16), buffer_size);
-                    }
+                /* This should never happen, however just in case, guard against this becoming a spinloop. */
+                R_UNLESS(buffer, TuneResult_NoAudioBuffer);
 
-                    const auto nSamples = source->Resample((u8*)buffer->buffer, buffer_size);
-                    R_UNLESS(nSamples > 0, TuneResult_FileOpenFailure);
-
-                    buffer->data_size = nSamples;
-                    R_TRY(audoutAppendAudioOutBuffer(buffer));
+                /* Update the default buffer size if this is the first audio buffer, reduces latency between songs. */
+                auto buffer_size = AUDIO_BUFFER_SIZE * sizeof(s16);
+                if (first) {
+                    first--;
+                    buffer_size = std::min(512 * sizeof(s16), buffer_size);
                 }
 
+                /* Checking if the source has finished is handled below, so returning <= 0 is always an error. */
+                const auto nSamples = source->Resample((u8*)buffer->buffer, buffer_size);
+                R_UNLESS(nSamples > 0, TuneResult_PlaybackFailure);
+
+                /* Submit the audio buffer. */
+                buffer->data_size = nSamples;
+                R_TRY(audoutAppendAudioOutBuffer(buffer));
+
+                /* If we have finished, check if we should loop or move onto the next song. */
                 if (source->Done()) {
                     if (g_repeat == RepeatMode::One && !g_music_path_current) {
                         if (source->Seek(0)) {

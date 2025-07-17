@@ -17,6 +17,8 @@ typedef enum {
     TuneResult_OutOfRange       = MAKERESULT(TuneModule, 12),
     TuneResult_FileOpenFailure  = MAKERESULT(TuneModule, 20),
     TuneResult_VoiceInitFailure = MAKERESULT(TuneModule, 21),
+    TuneResult_PlaybackFailure  = MAKERESULT(TuneModule, 22),
+    TuneResult_NoAudioBuffer    = MAKERESULT(TuneModule, 23),
     TuneResult_OutOfMemory      = MAKERESULT(TuneModule, 30),
     TuneResult_Generic          = MAKERESULT(TuneModule, 40),
 } TuneResult;
