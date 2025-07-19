@@ -539,29 +539,32 @@ namespace tune::impl {
         audoutExit();
     }
 
+    /* Pauses playback when headphones are unplugged due to hos muting the audio. */
     void GpioThreadFunc(void *ptr) {
         GpioPadSession *session = static_cast<GpioPadSession *>(ptr);
-
-        bool pre_unplug_pause = false;
+        const auto Unplugged = GpioValue_High;
+        bool pre_unplug_play = true;
 
         /* [0] Low == plugged in; [1] High == not plugged in. */
-        GpioValue old_value = GpioValue_High;
+        GpioValue old_value = Unplugged;
         gpioPadGetValue(session, &old_value);
 
-        // TODO(TJ): pausing on headphone change should be a config option.
+        // TODO(TJ): pausing on headphone unplug should be a config option.
         while (g_should_run) {
             /* Fetch current gpio value. */
-            GpioValue value;
-            if (R_SUCCEEDED(gpioPadGetValue(session, &value))) {
-                if (old_value == GpioValue_Low && value == GpioValue_High) {
-                    pre_unplug_pause = g_should_play;
-                    g_should_play     = true;
-                } else if (old_value == GpioValue_High && value == GpioValue_Low) {
-                    if (!pre_unplug_pause)
+            GpioValue new_value;
+            if (R_SUCCEEDED(gpioPadGetValue(session, &new_value))) {
+                if (old_value != new_value) {
+                    old_value = new_value;
+                    if (new_value == Unplugged) {
+                        pre_unplug_play = g_should_play;
                         g_should_play = false;
+                    } else {
+                        g_should_play = pre_unplug_play;
+                    }
                 }
-                old_value = value;
             }
+
             svcSleepThread(10'000'000);
         }
     }
