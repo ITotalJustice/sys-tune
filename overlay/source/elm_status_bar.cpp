@@ -4,6 +4,9 @@
 
 namespace {
 
+    /* Max seek time in seconds. */
+    constexpr u32 MAX_SEEK_DELTA = 30;
+
     char path_buffer[FS_MAX_PATH] = "";
     char current_buffer[0x20] = "";
     char total_buffer[0x20] = "";
@@ -267,12 +270,18 @@ void StatusBar::Next() {
 }
 
 void StatusBar::Forward() {
+    const u32 max_delta = this->m_stats.sample_rate * MAX_SEEK_DELTA;
     u32 next = std::min(this->m_stats.current_frame + (this->m_stats.total_frames / 10), this->m_stats.total_frames);
+    next = std::min(next, this->m_stats.current_frame + max_delta);
+
     tuneSeek(next);
 }
 
 void StatusBar::Backward() {
+    const s64 max_delta = this->m_stats.sample_rate * MAX_SEEK_DELTA;
     u32 next = std::max(s64(this->m_stats.current_frame) - s64(this->m_stats.total_frames / 10), s64(0));
+    next = std::max<s64>(next, s64(this->m_stats.current_frame) - max_delta);
+
     tuneSeek(next);
 }
 
