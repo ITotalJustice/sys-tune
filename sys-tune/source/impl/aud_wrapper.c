@@ -1,5 +1,3 @@
-#include "aud.h"
-#include "audout.h"
 #include "aud_wrapper.h"
 #include <switch.h>
 
@@ -19,20 +17,14 @@ void audWrapperExit(void) {
 }
 
 Result audWrapperRequestSuspend(u64 pid, u64 delay) {
-    Handle h;
-    if (hosversionBefore(4,0,0))
-        return audoutaRequestSuspendOld(pid, delay, &h);
-    else if (hosversionBefore(11,0,0))
+    if (hosversionBefore(11,0,0))
         return audoutaRequestSuspend(pid, delay);
     else
         return audaRequestSuspendAudio(pid, delay);
 }
 
 Result audWrapperRequestResume(u64 pid, u64 delay) {
-    Handle h;
-    if (hosversionBefore(4,0,0))
-        return audoutaRequestResumeOld(pid, delay, &h);
-    else if (hosversionBefore(11,0,0))
+    if (hosversionBefore(11,0,0))
         return audoutaRequestResume(pid, delay);
     else
         return audaRequestResumeAudio(pid, delay);
